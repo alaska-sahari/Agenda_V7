@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<link rel="manifest" href="manifest.json">
+
+<title>Calendrier</title>
+
+<style>
+  html, body {
+       touch-action: manipulation;
+ }
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 40px;
+   }
+
+/* 🌙 DARK MODE */
+.dark { background:#121212; }
+.dark .calendar { background:#1e1e1e; color:#fff; }
+.dark .menu { background:#2a2a2a; color:#fff; border-color:#444; }
+.dark input, .dark textarea {
+  background:#333; color:#fff; border:1px solid #555;
+  }
+.dark button{color: white;}
+.dark .today{box-shadow:3px 2px 15px whitesmoke;}
+
+.dark .date{border: 1px solid rgba(255,255,255,0.1);}
+.dark .disabled{border: none;}
+.dark #noteModal .modal-content{
+  background: #333; color: white;
+  border: 1px solid lightgray;}
+
+
+
+.calendar {
+  background: whitesmoke;
+  padding: 20px;
+  border-radius: 10px;
+  width:90% ;height: 52vh;margin-top: 10vh;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  
+  touch-action: pan-y;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+input{
+  outline: none;
+}
+
+button {
+  background: transparent;color: black;
+  color: #333;
+  padding:5px 10px;
+  border: none;
+  cursor:pointer;
+  width:100px;height:100px;font-size: 25px;
+}
+.today {
+  box-shadow:3px 2px 15px #222;
+  font-weight: bold;
+}
+.days, .dates {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  text-align:center;
+}
+
+.days div { font-weight:bold; padding:10px; }
+
+.days div:last-child , .friday {
+  color: gray;opacity: 0.5;
+}
+
+ 
+.date {
+  padding:10px;
+  margin:2px;
+  border-radius:10%;
+  cursor:pointer;
+  position:relative;
+  display: flex;justify-content :center;align-items: center;
+  height: 100px;
+  border: 1px solid rgba(0,0,0,0.2);
+  font-size: 30px;
+}
+
+
+.date.cross::after {
+  content: "✕";
+  position: absolute;color: red;
+  font-size: 60px;margin-top: 20px;
+  
+  top: -2px;
+}
+.date.success {
+  position: relative;
+  font-weight: bold;
+}
+
+/* الحلقة حول الرقم */
+.date.success b {
+  position: relative;
+  display: inline-block;
+  padding: 10px;
+}
+
+.date.success b::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70px;
+  height: 70px;
+  border: 4px solid #28a745;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+
+.date:hover { background:#007BFF; color:white; }
+
+.disabled { background: transparent;  cursor:not-allowed ; border: none;
+  height: 100px;}
+
+.icon { display:block; font-size:25px; 
+  background: transparent;position: absolute;top: 10px;left: 10px;
+}
+
+#iconEditor div {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:8px 0;color: white;
+  
+  
+  
+}
+
+#iconEditor input {
+  width:40%;
+  padding:5px;font-size: 25px;
+}
+#iconModal{
+  background: transparent;z-index: 10000;
+  height: 80vh; width: 100% ;
+  margin-top: 10vh;
+}
+.Montant{
+  background: rgba(0,0,0,.9);
+  padding: 40px;
+  border: 2px solid white;
+  color: grey;margin-top: 150px;
+
+}
+/* MENU */
+.menu {
+  position:fixed;
+  background: #eee;color: #333;
+  border:3px solid darkgray;
+  border-radius:5px;
+  padding:5px;
+  display:none;
+  z-index:10;
+  width: 450px ;top: 55vh;right: 25%;
+  
+}
+
+.menu span {
+  cursor:pointer;
+  padding:5px;
+  margin: 20px;
+  font-size:50px; 
+}
+
+.menu span:hover { background:#eee; }
+
+/* INDICATEURS */
+.note-indicator {
+  position:absolute;
+  bottom:3px;
+  left:5px;
+  font-size:20px;
+}
+
+
+.strawberry-dot  {
+  position:absolute;
+  top: 18px;
+  right: 40px;
+  width:15px;
+  height:15px;
+  background:red;
+  border-radius:50%;
+}
+.strawberry-dott  {
+  position:absolute;
+  top: 18px;
+  right: 40px;
+  width:15px;
+  height:15px;
+  background: orange;
+  border-radius:50%;
+}
+
+
+#total {
+  text-align:center;
+  font-weight:bold;
+  margin-top:250px;
+  font-size: 30px;
+  color: grey;
+}
+
+/* MODAL */
+.modal {
+  position:absolute;
+  height : 50vh;
+  inset:0;
+  background:red;
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+
+.modal-content {
+  background: rgba(0,0,0,.9);
+  top: 10px;
+  border: 1px solid white;
+  padding:25px;padding-bottom:100px;
+  border-radius:10px;
+  width: 80%;height: 40vh;position: absolute;
+}
+
+textarea { width:80%; height: 100px;font-size: 30px;text-align: center;padding: 60px ;
+  line-height: 50px;
+}
+
+#noteModal{
+  background: rgba(0,0,0,0.5);
+  height: 100vh;position: fixed;z-index: 1000;
+}
+#noteModal .modal-content{
+  background: #eee; color: black;
+  border: 1px solid dimgray;
+  padding: 30px;
+  height: 500px; margin-top: 20vh;
+}
+
+#noteModal .button{
+  
+  float: right;
+  background: transparent;
+}
+#noteModal .button button{
+  background: transparent;
+  margin: 10px;font-size: 40px;
+}
+
+
+#backup-container {
+    display: inline;
+  
+    
+    
+}
+
+.backup-btn , #prm , #prmcls , #opn , #cls ,#statsBtn, .darkk{
+    background: transparent;border: none;
+    padding: 5px 5px;
+    margin:0 10px;
+    font-size: 40px;
+    cursor: pointer;
+    /*transition: 0.3s;*/
+}
+#prm , #prmcls{
+  margin-left: 90%;
+}
+#statsBtn{
+/*  position: absolute;
+  left: 5%;
+  top: 90px;
+  */
+}
+.backup-btn:hover {
+    background: #45a049;
+}
+
+.import-btn {
+    background: transparent;
+}
+
+.import-btn:hover {
+    background: #1976D2;
+}
+
+.file-input {
+    display: none;
+}
+
+
+
+
+.clear-btn {
+  font-size: 40px;
+ bottom: 20px;left: 20px;
+  position: absolute;
+  
+    
+    cursor: pointer;
+    transition: 0.3s;
+    opacity: .5; 
+}
+
+.clear-btn:hover {
+    background: #d32f2f;
+}
+
+#endDate ,#startDate , #amount{
+  font-size: 30px;
+}
+
+#argent{
+  margin-top: 100px;
+  
+}
+#opn{position: absolute; top:52vh;right: 30px;
+font-size: 35px;
+} 
+
+#cls{position: absolute; top:52vh;right: 30px;display:none;}
+
+
+.T_V_R{
+  color: grey;
+  padding: 20px;
+  width: 500px;
+  text-align: center;margin-left: 30%;
+  margin-top: -15vh;
+}
+.T_V{ border-bottom: 2px solid gray;padding: 20px;  display: none;
+}
+.T_R{border-bottom: 2px solid gray;padding: 20px;  display: none;
+}
+
+
+#installBtn{
+  display:none; position:fixed; top:15px; left:25px; z-index:9999;border: 1px solid darkred;padding: 40px;width: 200px;text-align: center;background: dimgrey; border-radius: 25px;color: white;
+}
+.Auto,.Custom,.Total{
+  color: rgb(109, 109, 109);
+  border-bottom: 1px solid navajowhite;
+  padding: 20px;margin: 40px;text-align: center;
+}
+.redTotal{
+  padding: 20px;margin: 40px;text-align: center;
+}
+.resultTotall{
+
+  display: none;
+  font-size: 50px;
+  position: absolute;
+  bottom: 28vh;
+  right: 35%;
+}
+.resultT{
+  position: absolute;
+  bottom: 10vh;
+  right: 40%;
+}
+.custom-success b::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70px;
+  height: 70px;
+  border: 4px solid yellowgreen;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+#redTotal{
+  margin-top: 50px; display: none;
+  color: grey;
+}
+.plus{
+display: none;cursor: pointer;
+position: absolute; top:60vh;right: 100px;
+font-size: 50px;
+
+}
+
+.DotRed{
+text-align: center;margin: 20px 0;
+}
+#redAmount{
+font-size: 32px;
+}
+
+
+
+
+
+/* =========================
+   STATS MODAL
+========================= */
+
+#statsModal{
+  position:absolute ;
+  /* inset: 0; */
+  z-index: 99999;
+  display: none;
+  /* justify-content: center;
+  align-items: center; */
+  background: #444;
+  height:200vh;
+  overflow-y: auto;
+}
+
+#statsModal .modal-content{
+  width: 90%;margin-top: 100px;
+  margin-bottom: 50px;
+  height: 56vh;
+  padding: 25px;
+  border-radius: 15px;
+  background: #f7f7f7;
+  color: #222;
+  box-shadow: 0 10px 30px rgba(0,0,0,.3);
+}
+
+.dark #statsModal .modal-content{
+  background: #222;
+  color: white;
+  border: 1px solid #444;
+}
+
+#statsModal h2{
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 42px;
+  color: #888;
+}
+
+#statsModal table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 28px;
+}
+
+#statsModal th{
+  background: #555;
+  color: white;
+  padding: 15px;
+}
+
+#statsModal td{
+  padding: 15px;
+  border-bottom: 1px solid rgba(0,0,0,.15);
+}
+
+.dark #statsModal td{
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+#statsModal tr:hover{
+  background: rgba(0,123,255,.08);
+}
+
+.dark #statsModal tr:hover{
+  background: rgba(255,255,255,.05);
+}
+
+.stats-success{
+  color: #28a745;
+  font-weight: bold;
+}
+
+.stats-fail{
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.stats-money{
+  color: #007BFF;
+  font-weight: bold;
+}
+
+.stats-red{
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.stats-total{
+  background: #444;
+  color: white;
+  font-weight: bold;
+  font-size: 32px;
+}
+
+.dark .stats-total{
+  background: #111;
+}
+
+.stats-close{
+  float: right;
+  font-size: 35px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+</style>
+</head>
+
+<body>
+  
+  <button id="installBtn">
+📲 Install
+</button>
+  
+  
+  
+  
+<div class="calendar">
+
+
+  
+    <button  id="prm" onclick="openIconManager()  , prm.style.display='none', prmcls.style.display='inline' "> ⚙</button>
+  
+   <button id="prmcls" onclick="iconModal.style.display='none' , prm.style.display='inline' , prmcls.style.display='none'" style="display: none">✖</button>
+  
+          
+          
+   
+  
+  <div id="iconModal" class="modal modall" >
+    <div class="modal-content">
+      
+         
+         
+         
+         
+         <div style="text-align:right;">
+  <button class="darkk" onclick="toggleDark()">🌙</button>
+  <span> </span>
+
+
+<button class="darkk" onclick="setPassword()">🔒</button>
+         
+         
+
+
+  
+  
+  
+  
+  <button onclick="storageInfo()">💾</button>
+  
+  
+   <div id="backup-container">
+     <button class="backup-btn" onclick="exportLocalStorage()">📤 </button>
+  
+     <button class="backup-btn import-btn" onclick="document.getElementById('fileInput').click()">
+       📥 
+     </button>
+  
+     <input type="file" id="fileInput" class="file-input" onchange="importLocalStorage(event)">
+   </div>
+  
+
+  
+    <button id="statsBtn" onclick="openStatsModal()">📊</button>
+          
+  
+
+  
+  
+
+          
+          
+      <hr style="height: 2px; background: white">
+      
+      
+      
+      
+      
+      <h3 style="color: gray; text-align: center;"> indicateurs </h3>
+      <div id="iconEditor"></div>
+      
+      <button style="margin:5px; position:absolute; z-index: 10000;top: 40vh; right: 40px;color: white;border: 1px solid white;border-radius: 20px;" onclick="saveIcons()">SAVE</button>
+   
+      
+      <br>
+      <div style="height: 30px"></div>
+      
+        
+        
+        
+        <div id="stats" style="
+  text-align:center;
+  margin-top:20px;
+  font-size:40px;
+  line-height:65px;
+"></div>
+        
+        
+        
+        
+        
+        <div class="Montant">
+          
+            <div style="text-align:center;">
+              <label>Montant auto:</label><br>
+              <input type="number" id="amount" placeholder="DA">
+            </div>
+            
+            
+          
+            
+          <div class="DotRed">
+            <label>Montant Red Auto :</label><br>
+            <input type="number" id="redAmount" placeholder="DA">
+          </div>
+            
+            
+            
+          
+            <div style="text-align:center; margin-top:10px;">
+              <label>Du :</label>
+              <input type="date" id="startDate"><br><br>
+          
+              <label>Au :</label>
+              <input type="date" id="endDate">
+            </div>
+        </div>
+        
+        
+        
+        
+        
+        
+
+      
+      
+     
+    </div>
+  
+  </div>
+  
+  </div>
+
+<div class="header">
+  <button onclick="changeMonth(-1)">◀</button>
+  <h3 id="monthYear"></h3>
+  <button onclick="changeMonth(1)">▶</button>
+</div>
+
+<div class="days">
+  <div>Sa</div><div>Di</div><div>Lu</div>
+  <div>Ma</div><div>Me</div><div>Je</div><div>Ve</div>
+</div>
+
+<div class="dates" id="dates"></div>
+
+
+
+
+
+
+
+
+   <button id="opn" onclick="openTotall()">☰</button>
+
+  <button id="cls" onclick="closeTotall()" > ✖</button>
+      
+            <b class="plus openT"  onclick="openTotalll()">...</b>
+            <b class="plus closeT"  onclick="closeTotalll()">...</b>
+
+          
+          
+<p class="resultTotall"> </p>
+
+<p class="resultT"> </p>
+
+  <!--
+<div id="argent" style="display: none">
+  
+
+    <p id="total"> </p>
+    <b class="plus openT" style="font-size: 50px;" onclick="openTotall()">...</b>
+    <b class="plus closeT" style="font-size: 50px;" onclick="closeTotall()">...</b>
+
+
+    <p id="redTotal"> red Total : 00 DA</p>
+
+</div>
+
+
+</div>
+  -->
+<!-- NOTE -->
+<div id="noteModal" class="modal">
+  <div class="modal-content">
+    <h3 style="padding: 0; font-size: 30px; text-align: center;"> Note :</h3><br>
+    <textarea id="noteText"></textarea>
+    <div class="button">
+         <button onclick="saveNote()">💾</button>
+    <button onclick="closeNote()">      ✖</button>
+
+    </div>
+   </div>
+  
+</div>
+
+
+
+
+<div id="statsModal" class="modal">
+
+
+  <div class="modal-content" >
+
+    <button class="stats-close"
+            onclick="closeStatsModal()">
+      ✖
+      </button>
+
+    <h2>📊 Statistiques périodique</h2>
+
+    <div id="statsContentt"></div>
+
+  </div>
+
+
+
+
+
+
+
+
+   
+
+  <div class="modal-content" style="position: relative;margin-top: 100vh;">
+
+    <button class="stats-close"
+            onclick="closeStatsModal()">
+      ✖
+      </button>
+
+    <h2>📊 Statistiques globale</h2>
+
+    <div id="statsContent"></div>
+
+  </div>
+
+
+
+  <button class="clear-btn" onclick="clearLocalStorage()">
+    🚮
+  </button>
+
+
+
+</div>
+
+
+
+
+<footer style="font-size: 16px; color: darkgray; position: fixed; bottom: 5px;right: 30px;">
+  <p>calendrier KML | By B.N @treize mai 2026__18po.V5</p>
+</footer>
+
+
+
+
+
+<script>
+const resultTotall=document.querySelector('.resultTotall');
+
+const resultT=document.querySelector('.resultT');
+
+const getIconMap = () => JSON.parse(localStorage.getItem("iconMap")) || {
+  "️◯":"...",
+  "●":"...",
+  "✕":"...",
+  "🕔":"...",
+  "☆":"...",
+  "$":"...",
+  "📝":"..."
+};
+
+const saveIconMap = (m) =>
+  localStorage.setItem("iconMap", JSON.stringify(m));
+function iconName(icon){
+  const map = getIconMap();
+  return map[icon] || icon;
+}
+
+
+
+let currentDate = new Date();
+let noteKey = null;
+function getDefaultRange() {
+  const today = new Date();
+
+  const start = new Date(today.getFullYear(), today.getMonth(), 1);
+  const end = new Date(today);
+
+  return {
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0]
+  };
+}
+/* DATA */
+const getData = () => JSON.parse(localStorage.getItem("calendarData")) || {};
+const saveData = d => localStorage.setItem("calendarData", JSON.stringify(d));
+
+const getAmount = () => Number(localStorage.getItem("amountPerCheck")) || '2000';
+const saveAmount = v => localStorage.setItem("amountPerCheck", v);
+
+
+const getRedAmount = () =>
+  Number(localStorage.getItem("redDefaultAmount")) || '100';
+
+const saveRedAmount = v =>
+  localStorage.setItem("redDefaultAmount", v);
+
+
+const saveInterval = (s,e)=>{
+  localStorage.setItem("intervalStart", s);
+  localStorage.setItem("intervalEnd", e);
+};
+
+function formatKey(y,m,d){
+  return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+/* CLOSE MENU */
+function closeMenu(){
+  document.querySelectorAll(".menu").forEach(m=>m.remove());
+}
+
+document.addEventListener("click", e=>{
+  if(!e.target.closest(".date")) closeMenu();
+});
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape") closeMenu();
+});
+
+/* TOTAL */
+
+
+function updateTotal(){
+  const data = getData();
+  const amount = getAmount();
+let autoRedTotal = 0;
+let customRedTotal = 0;
+  const startVal = startDate.value;
+  const endVal = endDate.value;
+
+  const def = getDefaultRange();
+  
+  const start = startVal ? new Date(startVal) : new Date(def.start);
+  const end = endVal ? new Date(endVal) : new Date(def.end);
+
+  
+  let totalVal = 0;
+let redTotalVal = 0;
+
+  for(const key in data){
+
+    if(data[key] !== "◯") continue;
+    if(
+  key.startsWith("custom_") ||
+  key.startsWith("note_") ||
+  key.startsWith("strawberry_") ||
+  key.startsWith("clock_") ||
+  key.startsWith("star_")
+) continue;
+
+    const [y,m,d] = key.split("-").map(Number);
+    const date = new Date(y,m-1,d);
+
+    if(date >= start && date <= end){
+      totalVal +=
+        data["custom_" + key] ??
+        data["auto_" + key] ??
+        amount;
+    }
+  }
+
+
+for (const key in data) {
+  if (!key.startsWith("strawberryAmount_")) continue;
+
+  const baseKey = key.replace("strawberryAmount_", "");
+
+  const [y, m, d] = baseKey.split("-").map(Number);
+  if (!y || !m || !d) continue;
+
+  const date = new Date(y, m - 1, d);
+
+  if (date < start || date > end) continue;
+
+  const value = Number(data[key]) || '';
+
+  const isAuto = data["strawberryAuto_" + baseKey] === true;
+
+  if (isAuto) {
+    autoRedTotal += value;
+  } else {
+    customRedTotal += value;
+  }
+}
+
+/*
+
+  total.textContent = "M total : " + totalVal + " DA";
+  
+*/
+  
+  resultTotall.innerHTML =`
+
+  
+    
+    
+      <div> Result : ${totalVal-(autoRedTotal + customRedTotal)} DA</div>
+    
+    
+`
+resultT.innerHTML =`
+<div class="T_V_R">
+   <div  class="T_V"> Total_V : ${totalVal} DA</div>
+           
+             <br>
+  <div class="T_R"> Total_R : ${autoRedTotal + customRedTotal} DA</div>
+    </div>     
+`
+
+}
+
+/*
+function openTotal() {
+
+  const resultMoney = document.querySelector('.resultMoney');
+  
+
+  if (resultMoney) resultMoney.style.display = 'block';
+
+}
+
+const openT = document.querySelector('.openT');
+const closeT = document.querySelector('.closeT');
+*/
+const closeT = document.querySelector('.closeT')
+const openT = document.querySelector('.openT');
+function openTotall(){
+  
+  resultTotall.style.display='block' ;
+  opn.style.display='none' ;
+  cls.style.display='inline';
+  openT.style.display='block';
+
+}
+function closeTotall(){
+  
+  resultTotall.style.display='none';
+  cls.style.display='none' ;
+  opn.style.display='inline';
+  closeT.style.display='none';
+  openT.style.display='none';
+
+
+
+  const T_V = document.querySelector('.T_V');
+  const T_R = document.querySelector('.T_R');
+
+  if (T_V) T_V.style.display = 'none';
+  
+  if (T_R) T_R.style.display = 'none';
+  
+
+
+}
+
+
+
+function openTotalll(){
+  const closeT = document.querySelector('.closeT')
+  const openT = document.querySelector('.openT')
+  const T_V = document.querySelector('.T_V');
+  const T_R = document.querySelector('.T_R');
+
+  if (T_V) T_V.style.display = 'block';
+
+  if (T_R) T_R.style.display = 'block';
+  
+    closeT.style.display = 'block';
+    openT.style.display = 'none';
+
+}
+function closeTotalll(){
+  const closeT = document.querySelector('.closeT')
+  const openT = document.querySelector('.openT')
+  const T_V = document.querySelector('.T_V');
+  const T_R = document.querySelector('.T_R');
+
+  if (T_V) T_V.style.display = 'none';
+  
+  if (T_R) T_R.style.display = 'none';
+  
+ closeT.style.display = 'none';
+    openT.style.display = 'block';
+
+
+}
+
+/* CALENDAR */
+function renderCalendar(){
+  dates.innerHTML="";
+
+  const y=currentDate.getFullYear();
+  const m=currentDate.getMonth();
+
+  const first=new Date(y,m,1).getDay();
+  const last=new Date(y,m+1,0).getDate();
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const data=getData();
+
+  const months=["Janvier","Février","Mars","Avril","Mai","Juin",
+  "Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+  monthYear.textContent=months[m]+" "+y;
+
+  // samedi = premier jour de la semaine
+  let offset = (first === 6) ? 0 : first + 1;
+  
+  for (let i = 0; i < offset; i++) {
+    dates.innerHTML += "<div></div>";
+  }
+
+  for(let d=1;d<=last;d++){
+    
+    const key=formatKey(y,m,d);
+    const div = document.createElement("div");
+    div.className = "date";
+    
+    const dateObj = new Date(y, m, d);
+    if (dateObj.getTime() === today.getTime()) {
+  div.classList.add("today");
+}
+const isFriday = dateObj.getDay() === 5; // الجمعة = 5
+    
+    if (isFriday) {
+      div.classList.add("friday");
+    }
+    const state = data[key];
+    
+    
+    
+    
+ if (state === "◯") {
+   const hasCustom = data["custom_" + key];
+ 
+   if (hasCustom) {
+     div.classList.add("custom-success");
+   } else {
+     div.classList.add("success");
+   }
+ }
+    
+    if (state === "✕") {
+      div.classList.add("cross");
+    }
+
+    const hasNote=data["note_"+key];
+    const hasStraw=data["strawberry_"+key];
+    const hasClock = data["clock_" + key];
+    const hasStar = data["star_" + key];
+
+    div.innerHTML=`
+      <b>${d}</b>
+      ${(data[key] && data[key] !== "◯" && data[key] !== "✕")
+      ? `<span class="icon" title="${iconName(data[key])}">
+        ${data[key]}
+      </span>`
+      : ""}
+
+      ${hasNote?'<span class="note-indicator">📝</span>':''}
+   
+   
+  ${hasStraw ? '<span class="strawberry-dot"></span>' : ''}
+  
+  ${data["strawberryAmount_" + key] &&
+  !data["strawberryAuto_" + key] ? `
+  <span class="strawberry-dott"></span>
+  ` : ''}
+   
+   
+    
+    ${hasClock ? `
+    <span style="
+        position:absolute;
+        bottom:5px;
+        right:2px;
+        font-size:25px;
+      ">🕔</span>
+    ` : ''}
+    
+    ${hasStar ? `
+    <span style="
+        position:absolute;
+        top:5px;
+        right:2px;
+        font-size:25px;
+      ">☆</span>
+    ` : ''}
+    
+    ${data["flag_" + key] ? `
+    <span style="
+        position:absolute;
+        top:5px;
+        left:5px;
+        font-size:30px;
+        
+      ">$</span>
+    ` : ""}
+    `;
+
+    
+
+    if(dateObj<=today){
+      div.onclick=()=>openMenu(div,key);
+      div.ondblclick=()=>openNote(key);
+    } else div.classList.add("disabled");
+
+    dates.appendChild(div);
+  }
+
+  updateTotal();
+  
+}
+
+/* MENU */
+function openMenu(target, key) {
+  closeMenu();
+
+  const menu = document.createElement("div");
+  menu.className = "menu";
+
+  const data = getData();
+  let showMore = false;
+
+  const baseIcons = ["◯", "✕", "●"];
+  const moreIcons = ["🕔","☆", "🗑", "$", "📝"];
+
+  function save() {
+    saveData(data);
+    renderCalendar();
+  }
+
+  function handleIcon(icon) {
+
+    // ✔ success / fail
+   if (icon === "◯") {
+   
+     if (data[key] === "◯") {
+   
+       delete data[key];
+       delete data["auto_" + key];
+       delete data["custom_" + key];
+   
+     } else {
+   
+       data[key] = "◯";
+       data["auto_" + key] = Number(getAmount());
+   
+     }
+   }
+   
+   if (icon === "✕") {
+   
+     if (data[key] === "✕") {
+       delete data[key];
+     } else {
+       data[key] = "✕";
+     }
+   }
+
+    // ✔ toggle important (●)
+    if (icon === "●") {
+      if (data["strawberry_" + key]) {
+        delete data["strawberry_" + key];
+        delete data["strawberryAmount_" + key];
+        delete data["strawberryAuto_" + key];
+      } else {
+        data["strawberry_" + key] = true;
+        data["strawberryAmount_" + key] = getRedAmount();
+        data["strawberryAuto_" + key] = true;
+      }
+    }
+
+    // ✔ note
+    if (icon === "📝") {
+      openNote(key);
+      closeMenu();
+      return;
+    }
+
+    // ✔ clock
+    if (icon === "🕔") {
+      const k = "clock_" + key;
+    
+      if (data[k]) {
+        delete data[k];
+      } else {
+        data[k] = true;
+      }
+    }
+
+    // ✔ star
+    if (icon === "☆") {
+      const k = "star_" + key;
+    
+      if (data[k]) {
+        delete data[k];
+      } else {
+        data[k] = true;
+      }
+    }
+
+    // ✔ delete day data
+    if (icon === "🗑") {
+      delete data[key];
+      delete data["strawberry_" + key];
+      delete data["strawberryAmount_" + key];
+      delete data["strawberryAuto_" + key];
+      delete data["clock_" + key];
+      delete data["star_" + key];
+      delete data["note_" + key];
+      delete data["auto_" + key];
+    }
+
+// $ = فقط علامة بدون أي علاقة بالمبالغ
+if (icon === "$") {
+  const k = "flag_" + key;
+
+  if (data[k]) {
+    delete data[k];
+  } else {
+    data[k] = true;
+  }
+}
+
+   
+
+    save();
+    closeMenu();
+  }
+
+  function render() {
+    menu.innerHTML = "";
+
+    const list = showMore ? [...baseIcons, ...moreIcons] : baseIcons;
+
+    list.forEach(icon => {
+      const span = document.createElement("span");
+      span.textContent = icon;
+
+      let longPress = false;
+      let timer;
+
+      // CLICK
+      span.onclick = (e) => {
+        if (longPress) return;
+        e.preventDefault();
+        handleIcon(icon);
+      };
+
+      // LONG PRESS (mobile)
+      span.ontouchstart = span.onmousedown = () => {
+        longPress = false;
+        timer = setTimeout(() => {
+          longPress = true;
+
+
+
+// long press on ◯ → custom amount (like strawberry)
+if (icon === "◯") {
+  const old = data["custom_" + key] ?? "";
+  const v = prompt("Montant personnalisé pour ce jour ?", old);
+
+  if (v === null) return;
+
+  if (v.trim() === "") {
+    delete data["custom_" + key];
+  } else {
+    data["custom_" + key] = Number(v);
+  }
+
+  save();
+  closeMenu();
+}
+          // long press on ● → edit amount
+          if (icon === "●") {
+            const old = data["strawberryAmount_" + key] ?? "";
+            const v = prompt("Montant personnalisé ?", old);
+
+            if (v === null) return;
+
+            if (v.trim() === "") {
+              data["strawberryAmount_" + key] = getRedAmount();
+              data["strawberryAuto_" + key] = true;
+            } else {
+              data["strawberryAmount_" + key] = Number(v);
+              delete data["strawberryAuto_" + key];
+            }
+
+            save();
+            closeMenu();
+          }
+
+        }, 600);
+      };
+
+      span.ontouchend = span.onmouseup = () => {
+        clearTimeout(timer);
+      };
+
+      menu.appendChild(span);
+    });
+
+    // more button
+    const more = document.createElement("span");
+    more.textContent = showMore ? "⇦" : "...";
+    more.style.fontWeight = "bold";
+
+    more.onclick = (e) => {
+      e.stopPropagation();
+      showMore = !showMore;
+      render();
+    };
+
+    menu.appendChild(more);
+  }
+
+  render();
+
+  menu.onclick = e => e.stopPropagation();
+  target.appendChild(menu);
+
+  menu.style.display = "flex";
+  menu.style.flexWrap = "wrap";
+  menu.style.justifyContent = "center";
+}
+
+/* NOTE */
+function openNote(key){
+  noteKey=key;
+  noteText.value=getData()["note_"+key]||"";
+  noteModal.style.display="flex";
+  closeMenu();
+  
+}
+
+function closeNote(){ noteModal.style.display="none"; }
+
+function saveNote(){
+  const data=getData();
+  const v=noteText.value;
+
+  v.trim()?data["note_"+noteKey]=v:delete data["note_"+noteKey];
+  
+  saveData(data);
+  closeNote();
+  renderCalendar();
+}
+
+/* MONTH */
+function changeMonth(s){
+  currentDate.setMonth(currentDate.getMonth()+s);
+  renderCalendar();
+}
+
+/* DARK */
+function toggleDark(){
+  document.body.classList.toggle("dark");
+  localStorage.setItem("darkMode",document.body.classList.contains("dark"));
+}
+
+if(localStorage.getItem("darkMode")==="true")
+  document.body.classList.add("dark");
+
+/* INIT */
+amount.value=getAmount();
+redAmount.value = getRedAmount();
+
+amount.oninput=e=>{
+  saveAmount(e.target.value);
+  updateTotal();
+};
+
+redAmount.oninput = e => {
+  saveRedAmount(e.target.value);
+};
+
+
+
+
+
+startDate.onchange = endDate.onchange = () => {
+
+  saveInterval(
+    startDate.value,
+    endDate.value
+  );
+
+  updateTotal();
+
+  if (statsModal.style.display === "block") {
+    buildStats();
+    buildStatss();
+
+  }
+};
+
+
+
+
+const savedStart = localStorage.getItem("intervalStart");
+const savedEnd = localStorage.getItem("intervalEnd");
+
+if (savedStart && savedEnd) {
+  startDate.value = savedStart;
+  endDate.value = savedEnd;
+} else {
+  const def = getDefaultRange();
+  startDate.value = def.start;
+  endDate.value = def.end;
+
+  saveInterval(def.start, def.end);
+}
+
+
+function openIconManager() {
+
+  const map = getIconMap();
+  const data = getData();
+  const box = document.getElementById("iconEditor");
+
+  box.innerHTML = "";
+
+
+
+let defaultCount = 0;
+let customCount = 0;
+let totalCount = 0;
+
+for (const key in data) {
+
+  if (key.startsWith("strawberry_") && !key.startsWith("strawberryAmount_")) {
+    if (!isInSelectedRange(key)) continue;
+    defaultCount++;
+  }
+
+  if (key.startsWith("strawberryAmount_")) {
+    if (!isInSelectedRange(key)) continue;
+    customCount++;
+  }
+}
+
+totalCount = defaultCount + customCount;
+
+
+  const stats = {
+    "◯": Object.entries(data)
+      .filter(([k, v]) =>
+        v === "◯" &&
+        !k.startsWith("note_") &&
+        !k.startsWith("custom_") &&
+        !k.startsWith("strawberry_") &&
+        !k.startsWith("clock_") &&
+        !k.startsWith("star_") &&
+        isInSelectedRange(k)
+      ).length,
+  
+
+
+      
+      
+"●": Object.keys(data)
+  .filter(k =>
+    k.startsWith("strawberry_") &&
+    isInSelectedRange(k)
+  ).length,
+
+  "●_auto": Object.keys(data)
+  .filter(k =>
+    k.startsWith("strawberry_") &&
+    isInSelectedRange(k) &&
+    data["strawberryAuto_" + k.replace("strawberry_", "")] === true
+  ).length,
+
+  "●_custom": Object.keys(data)
+  .filter(k =>
+    k.startsWith("strawberry_") &&
+    isInSelectedRange(k) &&
+    !data["strawberryAuto_" + k.replace("strawberry_", "")]
+  ).length,
+  
+  
+  
+      "✕": Object.entries(data)
+      .filter(([k, v]) =>
+        v === "✕" &&
+        !k.startsWith("note_") &&
+        !k.startsWith("custom_") &&
+        !k.startsWith("strawberry_") &&
+        !k.startsWith("clock_") &&
+        !k.startsWith("star_") &&
+        isInSelectedRange(k)
+      ).length,
+  
+  
+  
+  
+    "🕔": Object.keys(data)
+      .filter(k => k.startsWith("clock_") && isInSelectedRange(k))
+      .length,
+  
+    "☆": Object.keys(data)
+      .filter(k => k.startsWith("star_") && isInSelectedRange(k))
+      .length,
+  
+  "$": Object.keys(data)
+    .filter(k =>
+      k.startsWith("flag_") &&
+      isInSelectedRange(k)
+    ).length,
+  
+    "📝": Object.keys(data)
+      .filter(k =>
+        k.startsWith("note_") &&
+        data[k] &&
+        data[k].trim() !== "" &&
+        isInSelectedRange(k)
+      ).length
+  };
+
+  const baseIcons = ["◯", "●", "✕","🕔", "☆", "$", "📝"];
+
+  baseIcons.forEach(icon => {
+
+    const count = stats[icon] || 0;
+
+    const row = document.createElement("div");
+
+    row.innerHTML = `
+      <span style="font-size:30px;width:40px;text-align:center;">
+        ${icon}
+      </span>
+      
+      
+         <span style="
+              min-width:50px;
+              text-align:center;
+              font-size:50px;
+              color:rgb(242, 167, 91);
+            ">
+           ${count}
+         </span>
+      
+
+      <input data-icon="${icon}" value="${map[icon] || ""}" />
+
+    `;
+
+    box.appendChild(row);
+  });
+
+  iconModal.style.display = "flex";
+}
+
+
+
+function isInSelectedRange(key) {
+
+  const startVal = startDate.value;
+  const endVal = endDate.value;
+
+  const def = getDefaultRange();
+
+  const start = startVal ? new Date(startVal) : new Date(def.start);
+  const end = endVal ? new Date(endVal) : new Date(def.end);
+
+  // تجاهل المفاتيح الخاصة
+ let dateKey = key
+   .replace("note_", "")
+   .replace("custom_", "")
+   .replace("strawberry_", "")
+   .replace("clock_", "")
+   .replace("star_", "")
+   .replace("flag_", ""); // ✔ هذا هو الحل
+
+  const [y, m, d] = dateKey.split("-").map(Number);
+
+  if (!y || !m || !d) return false;
+
+  const date = new Date(y, m - 1, d);
+
+  return date >= start && date <= end;
+  
+}
+
+
+function saveIcons(){
+  const inputs = document.querySelectorAll("#iconEditor input");
+  const map = {};
+
+  inputs.forEach(i=>{
+    map[i.dataset.icon] = i.value;
+  });
+
+  saveIconMap(map);
+  iconModal.style.display = "none";
+  renderCalendar();
+}
+
+
+//statistiques
+
+function openStatsModal() {
+  buildStats();
+  buildStatss();
+
+  statsModal.style.display = "block";
+}
+
+function closeStatsModal() {
+  statsModal.style.display = "none";
+}
+
+// globale
+function buildStats(){
+
+  const data = getData();
+
+  let successAutoCount = 0;
+  let successCustomCount = 0;
+  let successAutoMoney = 0;
+  let successCustomMoney = 0;
+
+  let fail = 0;
+
+  let redAutoCount = 0;
+  let redCustomCount = 0;
+  let redAutoMoney = 0;
+  let redCustomMoney = 0;
+
+  let notes = 0;
+  let clocks = 0;
+  let stars = 0;
+  let flags = 0;
+
+  const defaultAmount = Number(getAmount()) || 0;
+
+  for (const key in data) {
+
+    /* ================= ◯ SUCCESS ================= */
+    if (data[key] === "◯") {
+
+      const custom = data["custom_" + key];
+      const auto = data["auto_" + key];
+
+      if (custom !== undefined) {
+        successCustomCount++;
+        successCustomMoney += Number(custom) || 0;
+      } else {
+        successAutoCount++;
+        successAutoMoney += (auto !== undefined ? Number(auto) : defaultAmount);
+      }
+    }
+
+    /* ================= ✕ FAIL ================= */
+    if (data[key] === "✕") {
+      fail++;
+    }
+
+    /* ================= ● RED ================= */
+    if (
+      key.startsWith("strawberry_") &&
+      !key.startsWith("strawberryAmount_")
+    ) {
+      const base = key.replace("strawberry_", "");
+
+      const amount = Number(data["strawberryAmount_" + base]) || 0;
+
+      if (data["strawberryAuto_" + base]) {
+        redAutoCount++;
+        redAutoMoney += amount;
+      } else {
+        redCustomCount++;
+        redCustomMoney += amount;
+      }
+    }
+
+    /* ================= OTHER ICONS ================= */
+    if (key.startsWith("note_") && data[key]?.trim() !== "") notes++;
+
+    if (key.startsWith("clock_")) clocks++;
+
+    if (key.startsWith("star_")) stars++;
+
+    if (key.startsWith("flag_")) flags++;
+  }
+
+  /* ================= TOTALS ================= */
+  const totalSuccessMoney =
+    successAutoMoney + successCustomMoney;
+
+  const totalRedMoney =
+    redAutoMoney + redCustomMoney;
+
+  const balance =
+    totalSuccessMoney - totalRedMoney;
+    
+    const totalSuccessCount=successCustomCount + successAutoCount;
+    const totalRedCount= redCustomCount  + redAutoCount
+
+  /* ================= UI ================= */
+  statsContent.innerHTML = `
+  <table>
+
+    <tr>
+      <th>Symbole</th>
+      <th>Détail</th>
+      <th>Nombre</th>
+      <th>Montant</th>
+    </tr>
+
+    <!-- ◯ SUCCESS -->
+    <tr>
+      <td>◯</td>
+      <td>Auto</td>
+      <td>${successAutoCount}</td>
+      <td>${successAutoMoney} DA</td>
+    </tr>
+
+    <tr>
+      <td>◯</td>
+      <td>Custom</td>
+      <td>${successCustomCount}</td>
+      <td>${successCustomMoney} DA</td>
+    </tr>
+    
+      <tr style="color:green">
+        <td>◯</td>
+        <td>Aut+Cust</td>
+        <td>${totalSuccessCount}</td>
+        <td>${totalSuccessMoney} DA</td>
+      </tr>
+
+ 
+    <!-- ● RED -->
+    <tr>
+      <td>●</td>
+      <td>Auto</td>
+      <td>${redAutoCount}</td>
+      <td>${redAutoMoney} DA</td>
+    </tr>
+
+    <tr>
+      <td>●</td>
+      <td>Custom</td>
+      <td>${redCustomCount}</td>
+      <td>${redCustomMoney} DA</td>
+    </tr>
+    
+      <tr style="color:red">
+        <td>●</td>
+        <td>Aut+cust</td>
+        <td>${totalRedCount}</td>
+        <td>${totalRedMoney}DA</td>
+      </tr>
+
+
+
+
+   <!-- ✕ FAIL -->
+    <tr>
+      <td>✕</td>
+      <td>-</td>
+      <td>${fail}</td>
+      <td>-</td>
+    </tr>
+
+    <!-- OTHER -->
+    <tr>
+      <td>📝</td>
+      <td>-</td>
+      <td>${notes}</td>
+      <td>—</td>
+    </tr>
+
+    <tr>
+      <td>🕔</td>
+      <td>-</td>
+      <td>${clocks}</td>
+      <td>—</td>
+    </tr>
+
+    <tr>
+      <td>☆</td>
+      <td>-</td>
+      <td>${stars}</td>
+      <td>—</td>
+    </tr>
+
+    <tr>
+      <td>$</td>
+      <td>-</td>
+      <td>${flags}</td>
+      <td>—</td>
+    </tr>
+
+    <!-- TOTALS -->
+    <tr style="font-weight:bold;background:#444;color:white">
+      <td colspan="2">Total_V</td>
+      <td></td>
+      <td colspan="2">${totalSuccessMoney} DA</td>
+    </tr>
+
+    <tr style="font-weight:bold;background:#444;color:white">
+      <td colspan="2">️Total_R</td>
+      <td></td>
+      <td colspan="2">${totalRedMoney} DA</td>
+    </tr>
+
+    <tr style="
+      font-weight:bold;
+      font-size:32px;
+      background:${balance >= 0 ? '#444' : '#555'};
+      color:white;
+    ">
+      <td colspan="2">Résultat</td>
+      <td></td>
+      <td colspan="2">${balance} DA</td>
+    </tr>
+
+  </table>
+  `;
+}
+
+
+// periodique
+function buildStatss(){
+
+  const data = getData();
+
+  let successAutoCount = 0;
+  let successCustomCount = 0;
+  let successAutoMoney = 0;
+  let successCustomMoney = 0;
+
+  let fail = 0;
+
+  let redAutoCount = 0;
+  let redCustomCount = 0;
+  let redAutoMoney = 0;
+  let redCustomMoney = 0;
+
+  let notes = 0;
+  let clocks = 0;
+  let stars = 0;
+  let flags = 0;
+
+  const defaultAmount = Number(getAmount()) || 0;
+
+  for (const key in data) {
+
+    // تجاهل المفاتيح المساعدة
+    if (
+      key.startsWith("custom_") ||
+      key.startsWith("note_") ||
+      key.startsWith("strawberry_") ||
+      key.startsWith("strawberryAmount_") ||
+      key.startsWith("strawberryAuto_") ||
+      key.startsWith("clock_") ||
+      key.startsWith("star_") ||
+      key.startsWith("flag_")
+    ) continue;
+
+    // خارج المجال الزمني
+    if (!isInSelectedRange(key)) continue;
+
+    /* ================= ◯ SUCCESS ================= */
+
+    if (data[key] === "◯") {
+
+      const custom = data["custom_" + key];
+      const auto = data["auto_" + key];
+
+      if (custom !== undefined) {
+
+        successCustomCount++;
+        successCustomMoney += Number(custom) || 0;
+
+      } else {
+
+        successAutoCount++;
+        successAutoMoney += (
+          auto !== undefined
+            ? Number(auto)
+            : defaultAmount
+        );
+      }
+    }
+
+    /* ================= ✕ FAIL ================= */
+
+    if (data[key] === "✕") {
+      fail++;
+    }
+
+    /* ================= ● RED ================= */
+
+    /* ================= ● RED ================= */
+    
+    for (const sKey in data) {
+    
+      if (
+        sKey.startsWith("strawberry_") &&
+        !sKey.startsWith("strawberryAmount_")
+      ) {
+    
+        const base = sKey.replace("strawberry_", "");
+    
+        if (!isInSelectedRange(base)) continue;
+    
+        const amount =
+          Number(data["strawberryAmount_" + base]) || 0;
+    
+        if (data["strawberryAuto_" + base]) {
+    
+          redAutoCount++;
+          redAutoMoney += amount;
+    
+        } else {
+    
+          redCustomCount++;
+          redCustomMoney += amount;
+        }
+      }
+    }
+
+    /* ================= OTHER ICONS ================= */
+
+    if (
+      data["note_" + key] &&
+      data["note_" + key].trim() !== ""
+    ) {
+      notes++;
+    }
+
+    if (data["clock_" + key]) {
+      clocks++;
+    }
+
+    if (data["star_" + key]) {
+      stars++;
+    }
+
+    if (data["flag_" + key]) {
+      flags++;
+    }
+  }
+
+  /* ================= TOTALS ================= */
+
+  const totalSuccessMoney =
+    successAutoMoney + successCustomMoney;
+
+  const totalRedMoney =
+    redAutoMoney + redCustomMoney;
+
+  const balance =
+    totalSuccessMoney - totalRedMoney;
+
+  const totalSuccessCount =
+    successAutoCount + successCustomCount;
+
+  const totalRedCount =
+    redAutoCount + redCustomCount;
+
+  /* ================= UI ================= */
+
+  statsContentt.innerHTML = `
+  <table>
+
+    <tr>
+      <th>Symbole</th>
+      <th>Détail</th>
+      <th>Nombre</th>
+      <th>Montant</th>
+    </tr>
+
+    <tr>
+      <td>◯</td>
+      <td>Auto</td>
+      <td>${successAutoCount}</td>
+      <td>${successAutoMoney} DA</td>
+    </tr>
+
+    <tr>
+      <td>◯</td>
+      <td>Custom</td>
+      <td>${successCustomCount}</td>
+      <td>${successCustomMoney} DA</td>
+    </tr>
+
+    <tr style="color:green">
+      <td>◯</td>
+      <td>Aut+Cust</td>
+      <td>${totalSuccessCount}</td>
+      <td>${totalSuccessMoney} DA</td>
+    </tr>
+
+    <tr>
+      <td>●</td>
+      <td>Auto</td>
+      <td>${redAutoCount}</td>
+      <td>${redAutoMoney} DA</td>
+    </tr>
+
+    <tr>
+      <td>●</td>
+      <td>Custom</td>
+      <td>${redCustomCount}</td>
+      <td>${redCustomMoney} DA</td>
+    </tr>
+
+    <tr style="color:red">
+      <td>●</td>
+      <td>Aut+Cust</td>
+      <td>${totalRedCount}</td>
+      <td>${totalRedMoney} DA</td>
+    </tr>
+
+    <tr>
+      <td>✕</td>
+      <td>-</td>
+      <td>${fail}</td>
+      <td>-</td>
+    </tr>
+
+    <tr>
+      <td>📝</td>
+      <td>-</td>
+      <td>${notes}</td>
+      <td>—</td>
+    </tr>
+
+    <tr>
+      <td>🕔</td>
+      <td>-</td>
+      <td>${clocks}</td>
+      <td>—</td>
+    </tr>
+
+    <tr>
+      <td>☆</td>
+      <td>-</td>
+      <td>${stars}</td>
+      <td>—</td>
+    </tr>
+
+    <tr>
+      <td>$</td>
+      <td>-</td>
+      <td>${flags}</td>
+      <td>—</td>
+    </tr>
+
+    <tr style="font-weight:bold;background:#444;color:white">
+      <td colspan="2">Total_V</td>
+      <td>${totalSuccessCount}</td>
+      <td>${totalSuccessMoney} DA</td>
+    </tr>
+
+    <tr style="font-weight:bold;background:#444;color:white">
+      <td colspan="2">Total_R</td>
+      <td>${totalRedCount}</td>
+      <td>${totalRedMoney} DA</td>
+    </tr>
+
+    <tr style="
+      font-weight:bold;
+      font-size:32px;
+      background:${balance >= 0 ? '#444' : '#555'};
+      color:white;
+    ">
+      <td colspan="2">Résultat</td>
+      <td></td>
+      <td>${balance} DA</td>
+    </tr>
+
+  </table>
+  `;
+}
+/* =========================
+   INSTALL PWA
+========================= */
+
+window.addEventListener("beforeinstallprompt", (e) => {
+
+  e.preventDefault();
+
+  deferredPrompt = e;
+
+  installBtn.style.display = "block";
+});
+
+installBtn.addEventListener("click", async () => {
+
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+
+  await deferredPrompt.userChoice;
+
+  deferredPrompt = null;
+
+  installBtn.style.display = "none";
+});
+
+window.addEventListener("appinstalled", () => {
+  installBtn.style.display = "none";
+});
+
+
+
+
+
+
+
+
+
+function exportLocalStorage() {
+    const data = {};
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data[key] = localStorage.getItem(key);
+    }
+
+    const blob = new Blob(
+        [JSON.stringify(data, null, 2)],
+        { type: "application/json" }
+    );
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "localStorage-backup.json";
+    a.click();
+}
+function importLocalStorage(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+
+        for (let key in data) {
+            localStorage.setItem(key, data[key]);
+        }
+
+        alert("تم الاسترجاع بنجاح");
+    };
+
+    reader.readAsText(file);
+}
+
+
+
+
+function clearLocalStorage() {
+if (confirm("Delete ALL data ?")) {
+
+  localStorage.clear();
+
+  renderCalendar();
+  updateTotal();
+}
+}
+
+
+
+
+
+/* =========================
+   SERVICE WORKER
+========================= */
+
+if ("serviceWorker" in navigator) {
+
+  window.addEventListener("load", () => {
+
+    navigator.serviceWorker.register("./sw.js")
+
+      .then(reg => {
+        console.log("SW OK:", reg.scope);
+      })
+
+      .catch(err => {
+        console.log("SW ERROR:", err);
+      });
+  });
+}
+
+
+
+
+
+
+
+
+
+/* =========================
+   PASSWORD PROTECTION
+========================= */
+
+function setPassword() {
+
+  let current = localStorage.getItem("appPassword");
+
+  if (current) {
+
+    if (confirm("حذف الرمز السري ؟")) {
+      localStorage.removeItem("appPassword");
+      alert("تم حذف الحماية");
+    }
+
+    return;
+  }
+
+  const pass = prompt("أدخل رمز سري :");
+
+  if (!pass || pass.trim() === "") return;
+
+  localStorage.setItem("appPassword", pass);
+
+  alert("تم تفعيل الحماية");
+}
+
+function checkPassword() {
+
+  const saved = localStorage.getItem("appPassword");
+
+  if (!saved) return true;
+
+  const entered = prompt("🔒 أدخل الرمز السري");
+
+  if (entered === saved) {
+    return true;
+  }
+
+  document.body.innerHTML = `
+    <div style="
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-size:40px;
+      color:red;
+    ">
+      Accès refusé
+    </div>
+  `;
+
+  return false;
+}
+
+
+/* =========================
+   INIT
+========================= */
+
+if (checkPassword()) {
+  renderCalendar();
+  updateTotal();
+}
+
+
+
+
+
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+const calendarElement = document.querySelector(".calendar");
+
+calendarElement.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+calendarElement.addEventListener("touchend", (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+
+  const diff = touchEndX - touchStartX;
+
+  // الحد الأدنى لمسافة السحب
+  if (Math.abs(diff) < 50) return;
+
+  if (diff < 0) {
+    // سحب لليسار → الشهر التالي
+    changeMonth(1);
+  } else {
+    // سحب لليمين → الشهر السابق
+    changeMonth(-1);
+  }
+});
+
+
+
+
+
+
+
+function storageInfo() {
+
+  let total = 0;
+
+  for (let i = 0; i < localStorage.length; i++) {
+
+    const key = localStorage.key(i);
+    const value = localStorage.getItem(key);
+
+    total += key.length + value.length;
+  }
+
+  const bytes = total * 2;
+  const kb = (bytes / 1024).toFixed(2);
+  const mb = (bytes / (1024 * 1024)).toFixed(3);
+
+  const limit = 5 * 1024 * 1024;
+  const percent = ((bytes / limit) * 100).toFixed(2);
+
+  alert(
+    `Utilisé : ${kb} KB\n` +
+    `(${mb} MB)\n\n` +
+    `Pourcentage : ${percent}%`
+  );
+}
+</script>
+
+</body>
+</html>
