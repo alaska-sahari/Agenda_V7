@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=1200, initial-scale=0.3">
 
 <link rel="manifest" href="manifest.json">
 
@@ -11,6 +11,10 @@
 <style>
   html, body {
        touch-action: manipulation;
+       
+  width: 1200px;
+  overflow: hidden;
+
  }
 body {
   font-family: Arial;
@@ -245,19 +249,31 @@ button {
   width: 80%;height: 40vh;position: absolute;
 }
 
-textarea { width:80%; height: 100px;font-size: 30px;text-align: center;padding: 60px ;
+
+
+
+textarea {
+  width: 80%;
+  height: 120px;
+  font-size: 30px;
+  text-align: center;
+  padding: 60px;
   line-height: 50px;
+  transition: height .4s ease;
 }
+
 
 #noteModal{
   background: rgba(0,0,0,0.5);
   height: 100vh;position: fixed;z-index: 1000;
+  transition: .5s;
 }
 #noteModal .modal-content{
   background: #eee; color: black;
   border: 1px solid dimgray;
   padding: 30px;
   height: 500px; margin-top: 20vh;
+  transition: .4s;
 }
 
 #noteModal .button{
@@ -359,6 +375,9 @@ font-size: 35px;
 
 #installBtn{
   display:none; position:fixed; top:15px; left:25px; z-index:9999;border: 1px solid darkred;padding: 40px;width: 200px;text-align: center;background: dimgrey; border-radius: 25px;color: white;
+}
+#checkUpdate{
+  position:fixed; top:15px; right:25px; z-index:9999;
 }
 .Auto,.Custom,.Total{
   color: rgb(109, 109, 109);
@@ -532,7 +551,8 @@ font-size: 32px;
 📲 Install
 </button>
   
-  
+  <button id="checkUpdate" class="darkk" onclick="checkUpdate()">🔄</button>
+
   
   
 <div class="calendar">
@@ -718,6 +738,8 @@ font-size: 32px;
     <h3 style="padding: 0; font-size: 30px; text-align: center;"> Note :</h3><br>
     <textarea id="noteText"></textarea>
     <div class="button">
+      
+      <b class="moree">more...</b>
          <button onclick="saveNote()">💾</button>
     <button onclick="closeNote()">      ✖</button>
 
@@ -781,7 +803,7 @@ font-size: 32px;
 
 
 <footer style="font-size: 16px; color: darkgray; position: fixed; bottom: 5px;right: 30px;">
-  <p>calendrier KML | By B.N @treize mai 2026__18po.V5</p>
+  <p>calendrier KML | By B.N @treize mai 2026__18po.V7.1</p>
 </footer>
 
 
@@ -896,35 +918,38 @@ let redTotalVal = 0;
     const [y,m,d] = key.split("-").map(Number);
     const date = new Date(y,m-1,d);
 
-    if(date >= start && date <= end){
-      totalVal +=
-        data["custom_" + key] ??
-        data["auto_" + key] ??
-        amount;
-    }
+  if (date >= start && date <= end) {
+    const auto = data["auto_" + key];
+  
+    totalVal +=
+      data["custom_" + key] ??
+      (auto !== undefined ? Number(auto) : 0);
+  }
   }
 
 
 for (const key in data) {
-  if (!key.startsWith("strawberryAmount_")) continue;
+  if (!key.startsWith("strawberry_")) continue;
+  if (key.startsWith("strawberryAmount_")) continue;
+  if (key.startsWith("strawberryAuto_")) continue;
 
-  const baseKey = key.replace("strawberryAmount_", "");
+  if (!data[key]) continue; // لازم تكون موجودة
 
+  const baseKey = key.replace("strawberry_", "");
+  
   const [y, m, d] = baseKey.split("-").map(Number);
-  if (!y || !m || !d) continue;
-
   const date = new Date(y, m - 1, d);
-
+  
   if (date < start || date > end) continue;
 
-  const value = Number(data[key]) || '';
+  const amount = Number(data["strawberryAmount_" + baseKey]) || 0;
 
   const isAuto = data["strawberryAuto_" + baseKey] === true;
 
   if (isAuto) {
-    autoRedTotal += value;
+    autoRedTotal += amount;
   } else {
-    customRedTotal += value;
+    customRedTotal += amount;
   }
 }
 
@@ -1869,7 +1894,7 @@ function buildStats(){
 
 
 // periodique
-function buildStatss(){
+function buildStatss() {
 
   const data = getData();
 
@@ -1894,35 +1919,18 @@ function buildStatss(){
 
   for (const key in data) {
 
-    // تجاهل المفاتيح المساعدة
-    if (
-      key.startsWith("custom_") ||
-      key.startsWith("note_") ||
-      key.startsWith("strawberry_") ||
-      key.startsWith("strawberryAmount_") ||
-      key.startsWith("strawberryAuto_") ||
-      key.startsWith("clock_") ||
-      key.startsWith("star_") ||
-      key.startsWith("flag_")
-    ) continue;
-
-    // خارج المجال الزمني
     if (!isInSelectedRange(key)) continue;
 
-    /* ================= ◯ SUCCESS ================= */
-
+    /* SUCCESS */
     if (data[key] === "◯") {
 
       const custom = data["custom_" + key];
       const auto = data["auto_" + key];
 
       if (custom !== undefined) {
-
         successCustomCount++;
         successCustomMoney += Number(custom) || 0;
-
       } else {
-
         successAutoCount++;
         successAutoMoney += (
           auto !== undefined
@@ -1932,66 +1940,43 @@ function buildStatss(){
       }
     }
 
-    /* ================= ✕ FAIL ================= */
-
+    /* FAIL */
     if (data[key] === "✕") {
       fail++;
     }
 
-    /* ================= ● RED ================= */
+    /* RED */
+    if (
+      key.startsWith("strawberry_") &&
+      !key.startsWith("strawberryAmount_")
+    ) {
 
-    /* ================= ● RED ================= */
-    
-    for (const sKey in data) {
-    
-      if (
-        sKey.startsWith("strawberry_") &&
-        !sKey.startsWith("strawberryAmount_")
-      ) {
-    
-        const base = sKey.replace("strawberry_", "");
-    
-        if (!isInSelectedRange(base)) continue;
-    
-        const amount =
-          Number(data["strawberryAmount_" + base]) || 0;
-    
-        if (data["strawberryAuto_" + base]) {
-    
-          redAutoCount++;
-          redAutoMoney += amount;
-    
-        } else {
-    
-          redCustomCount++;
-          redCustomMoney += amount;
-        }
+      const base = key.replace("strawberry_", "");
+
+      const amount =
+        Number(data["strawberryAmount_" + base]) || 0;
+
+      if (data["strawberryAuto_" + base]) {
+        redAutoCount++;
+        redAutoMoney += amount;
+      } else {
+        redCustomCount++;
+        redCustomMoney += amount;
       }
     }
 
-    /* ================= OTHER ICONS ================= */
-
+    /* NOTES */
     if (
-      data["note_" + key] &&
-      data["note_" + key].trim() !== ""
+      key.startsWith("note_") &&
+      data[key]?.trim() !== ""
     ) {
       notes++;
     }
 
-    if (data["clock_" + key]) {
-      clocks++;
-    }
-
-    if (data["star_" + key]) {
-      stars++;
-    }
-
-    if (data["flag_" + key]) {
-      flags++;
-    }
+    if (key.startsWith("clock_")) clocks++;
+    if (key.startsWith("star_")) stars++;
+    if (key.startsWith("flag_")) flags++;
   }
-
-  /* ================= TOTALS ================= */
 
   const totalSuccessMoney =
     successAutoMoney + successCustomMoney;
@@ -2007,8 +1992,6 @@ function buildStatss(){
 
   const totalRedCount =
     redAutoCount + redCustomCount;
-
-  /* ================= UI ================= */
 
   statsContentt.innerHTML = `
   <table>
@@ -2036,7 +2019,7 @@ function buildStatss(){
 
     <tr style="color:green">
       <td>◯</td>
-      <td>Aut+Cust</td>
+      <td>Total</td>
       <td>${totalSuccessCount}</td>
       <td>${totalSuccessMoney} DA</td>
     </tr>
@@ -2057,7 +2040,7 @@ function buildStatss(){
 
     <tr style="color:red">
       <td>●</td>
-      <td>Aut+Cust</td>
+      <td>Total</td>
       <td>${totalRedCount}</td>
       <td>${totalRedMoney} DA</td>
     </tr>
@@ -2073,46 +2056,46 @@ function buildStatss(){
       <td>📝</td>
       <td>-</td>
       <td>${notes}</td>
-      <td>—</td>
+      <td>-</td>
     </tr>
 
     <tr>
       <td>🕔</td>
       <td>-</td>
       <td>${clocks}</td>
-      <td>—</td>
+      <td>-</td>
     </tr>
 
     <tr>
       <td>☆</td>
       <td>-</td>
       <td>${stars}</td>
-      <td>—</td>
+      <td>-</td>
     </tr>
 
     <tr>
       <td>$</td>
       <td>-</td>
       <td>${flags}</td>
-      <td>—</td>
+      <td>-</td>
     </tr>
 
     <tr style="font-weight:bold;background:#444;color:white">
       <td colspan="2">Total_V</td>
-      <td>${totalSuccessCount}</td>
+      <td></td>
       <td>${totalSuccessMoney} DA</td>
     </tr>
 
     <tr style="font-weight:bold;background:#444;color:white">
       <td colspan="2">Total_R</td>
-      <td>${totalRedCount}</td>
+      <td></td>
       <td>${totalRedMoney} DA</td>
     </tr>
 
     <tr style="
       font-weight:bold;
       font-size:32px;
-      background:${balance >= 0 ? '#444' : '#555'};
+      background:#444;
       color:white;
     ">
       <td colspan="2">Résultat</td>
@@ -2126,7 +2109,7 @@ function buildStatss(){
 /* =========================
    INSTALL PWA
 ========================= */
-
+let deferredPrompt;
 window.addEventListener("beforeinstallprompt", (e) => {
 
   e.preventDefault();
@@ -2191,6 +2174,9 @@ function importLocalStorage(event) {
         }
 
         alert("تم الاسترجاع بنجاح");
+        renderCalendar();
+        updateTotal();
+        location.reload();
     };
 
     reader.readAsText(file);
@@ -2309,8 +2295,6 @@ if (checkPassword()) {
 
 
 
-
-
 let touchStartX = 0;
 let touchEndX = 0;
 
@@ -2368,6 +2352,136 @@ function storageInfo() {
     `Pourcentage : ${percent}%`
   );
 }
+
+
+
+
+
+
+
+
+let expanded = false;
+
+const moree = document.querySelector('.moree');
+const textarea = document.querySelector('textarea');
+
+moree.addEventListener('click', () => {
+  const modal = document.querySelector('#noteModal .modal-content');
+
+  if (!expanded) {
+    modal.style.height = '60vh';
+    textarea.style.height = '40vh';
+    moree.textContent = 'less...';
+  } else {
+    modal.style.height = '500px';
+    textarea.style.height = '120px';
+    moree.textContent = 'more...';
+  }
+
+  expanded = !expanded;
+});
+
+
+
+
+
+
+
+async function checkUpdate() {
+  if (!('serviceWorker' in navigator)) return;
+
+  const reg = await navigator.serviceWorker.getRegistration();
+
+  if (!reg) {
+    alert("لا يوجد Service Worker");
+    return;
+  }
+
+  await reg.update();
+
+  if (reg.waiting) {
+    showUpdateAvailable(reg.waiting);
+  } else {
+    alert("التطبيق محدث بالفعل");
+  }
+}
+
+function showUpdateAvailable(worker) {
+  const box = document.createElement("div");
+
+  box.style = `
+    position:fixed;
+    top:20px;
+    left:20px;
+    background:#333;
+    color:white;
+    padding:15px;
+    z-index:99999;
+    border-radius:10px;
+  `;
+
+  box.innerHTML = `
+    <div>يوجد تحديث جديد</div>
+    <button id="upBtn">تحديث</button>
+    <button id="noBtn">لاحقًا</button>
+  `;
+
+  document.body.appendChild(box);
+
+  document.getElementById("upBtn").onclick = () => {
+    worker.postMessage({ action: "skipWaiting" });
+    location.reload();
+  };
+
+  document.getElementById("noBtn").onclick = () => box.remove();
+}
+
+
+
+
+function showUpdateBanner() {
+
+  const box = document.createElement("div");
+
+  box.style = `
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    right:20px;
+    background:#222;
+    color:white;
+    padding:15px;
+    border-radius:12px;
+    z-index:999999;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  `;
+
+  box.innerHTML = `
+    <div>🔄 تحديث جديد متاح</div>
+    <div>
+      <button id="updateBtn">تحديث</button>
+      <button id="laterBtn">لاحقاً</button>
+    </div>
+  `;
+
+  document.body.appendChild(box);
+
+  document.getElementById("updateBtn").onclick = () => {
+    newWorker.postMessage({ type: "skipWaiting" });
+
+    newWorker.addEventListener("statechange", () => {
+      if (newWorker.state === "activated") {
+        location.reload();
+      }
+    });
+  };
+
+  document.getElementById("laterBtn").onclick = () => box.remove();
+}
+
+
 </script>
 
 </body>
