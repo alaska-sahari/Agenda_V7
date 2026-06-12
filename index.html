@@ -803,7 +803,7 @@ font-size: 32px;
 
 
 <footer style="font-size: 16px; color: darkgray; position: fixed; bottom: 5px;right: 30px;">
-  <p>calendrier KML | By B.N @treize mai 2026__18po.V7.1</p>
+  <p>calendrier KML | By B.N @treize mai 2026__18po.V7.3</p>
 </footer>
 
 
@@ -2406,7 +2406,18 @@ async function checkUpdate() {
   }
 }
 
+
+
+
 function showUpdateAvailable(worker) {
+  const SKIP_KEY = "update_snoozed_until";
+
+  // إذا المستخدم اختار "لاحقاً" ومازال الوقت لم ينتهِ → لا نعرض النافذة
+  const snoozedUntil = localStorage.getItem(SKIP_KEY);
+  if (snoozedUntil && Date.now() < Number(snoozedUntil)) {
+    return;
+  }
+
   const box = document.createElement("div");
 
   box.style = `
@@ -2418,22 +2429,35 @@ function showUpdateAvailable(worker) {
     padding:15px;
     z-index:99999;
     border-radius:10px;
+    font-size:20px;
   `;
 
   box.innerHTML = `
-    <div>يوجد تحديث جديد</div>
-    <button id="upBtn">تحديث</button>
-    <button id="noBtn">لاحقًا</button>
+    <div style="margin-bottom:10px;">🔄 يوجد تحديث جديد للتطبيق</div>
+
+    <button id="acceptUpdate" style="margin-right:10px;">
+      موافقة
+    </button>
+
+    <button id="rejectUpdate">
+      لاحقاً
+    </button>
   `;
 
   document.body.appendChild(box);
 
-  document.getElementById("upBtn").onclick = () => {
-    worker.postMessage({ action: "skipWaiting" });
+  // ✅ موافقة = تحديث مباشر
+  document.getElementById("acceptUpdate").onclick = () => {
+    worker.postMessage({ type: "skipWaiting" });
     location.reload();
   };
 
-  document.getElementById("noBtn").onclick = () => box.remove();
+  // ⏳ لاحقاً = إخفاء مؤقت ثم إعادة الظهور بعد مدة
+  document.getElementById("rejectUpdate").onclick = () => {
+    const oneDay = 24 * 60 * 60 * 1000; // 24 ساعة
+    localStorage.setItem(SKIP_KEY, Date.now() + oneDay);
+    box.remove();
+  };
 }
 
 
